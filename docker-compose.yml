@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # База данных PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: vsm_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vsm_db
+      POSTGRES_USER: vsm_user
+      POSTGRES_PASSWORD: vsm_password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - vsm_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vsm_user -d vsm_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis для кеширования
+  redis:
+    image: redis:7-alpine
+    container_name: vsm_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - vsm_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Django приложение
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vsm_web
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py migrate --settings=config.settings.local &&
+             python manage.py runserver 0.0.0.0:8000 --settings=config.settings.local"
+    environment:
+      - DEBUG=True
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=vsm_db
+      - DB_USER=vsm_user
+      - DB_PASSWORD=vsm_password
+      - REDIS_URL=redis://redis:6379/1
+      - SECRET_KEY=django-insecure-development-key-change-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,web
+      - DJANGO_SETTINGS_MODULE=config.settings.local
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - vsm_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+
+networks:
+  vsm_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

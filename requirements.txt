@@ -1,0 +1,42 @@
+# Core Django stack
+Django==4.2.9
+djangorestframework==3.14.0
+python-decouple==3.8
+
+# Database
+psycopg2-binary==2.9.7
+redis==4.6.0
+
+# Testing
+pytest==7.4.3
+pytest-django==4.7.0
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+factory-boy==3.3.0
+
+# API & Documentation
+drf-spectacular==0.26.5
+django-filter==23.3
+django-cors-headers==4.3.1
+
+# Development tools
+coverage==7.3.2
+flake8==6.1.0
+black==23.11.0
+isort==5.12.0
+
+# File handling
+pandas==2.0.3
+openpyxl==3.1.2
+xlrd==2.0.1
+
+# Background tasks (optional for testing)
+celery==5.3.4
+django-celery-beat==2.5.0
+django-celery-results==2.5.0
+django-redis==5.4.0
+whitenoise==6.6.0
+
+# Additional utilities
+python-dateutil==2.8.2
+pytz==2023.3 
