@@ -53,8 +53,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3' } }
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'test_vsm_db',
+        'USER': 'vsm_user',
+        'PASSWORD': 'vsm_password',
+        'HOST': 'db',
+        'PORT': '5432',
+        'TEST': {
+            'NAME': 'test_vsm_db',
+        }
+    }
+}
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
